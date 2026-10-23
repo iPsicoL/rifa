@@ -38,7 +38,7 @@ body{font-family:ui-sans-serif,system-ui;background:#f6eee7;color:#4b1828}
 <dialog id="detail" class="rounded-2xl p-0 w-[min(92vw,380px)] shadow-2xl backdrop:bg-black/50"><div class="p-6"><div class="text-xs font-bold text-[#a17a4d]">RIFA DA FORMATURA</div><h3 id="detailNumber" class="text-3xl font-black mt-1"></h3><p id="detailStatus" class="mt-2"></p><div id="detailAdmin" class="hidden mt-5 flex flex-wrap gap-2"><button id="editOne" class="btn btn-main">Editar</button><button id="releaseOne" class="btn btn-alt">Liberar número</button></div><button id="closeDetail" class="btn btn-alt w-full mt-5">Fechar</button></div></dialog>
 <script>
 // PREENCHA SOMENTE A URL E A CHAVE PUBLICÁVEL DO SEU PROJETO.
-const SUPABASE_URL = 'https://rifa-odontologia.supabase.co';
+const SUPABASE_URL = 'https://eykflyfpvpzdpnqtzyjo.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_MT6DK45S6A9tF0XCYJ1Lmg_NTI468LJ';
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 const $ = id => document.getElementById(id);
