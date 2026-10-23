@@ -1,0 +1,17 @@
+RIFA ODONTOLOGIA - SUPABASE
+
+1. No Supabase, execute configurar_supabase.sql no SQL Editor.
+2. Em Authentication > Users, crie um usuário com e-mail e senha.
+3. Descubra o UUID do usuário em Authentication > Users e execute no SQL Editor:
+   INSERT INTO public.administradores (user_id) VALUES ('UUID-DO-USUARIO') ON CONFLICT DO NOTHING;
+4. Em Project Settings > API Keys / Connect, copie a Project URL e a chave pública sb_publishable_...
+5. Edite index.html: substitua COLE_AQUI_A_PROJECT_URL e COLE_AQUI_A_PUBLISHABLE_KEY.
+6. Publique o index.html em Cloudflare Pages ou outro host HTTPS. Para testar localmente, use um servidor HTTP (ex.: python -m http.server 8080).
+7. Teste leitura pública em aba anônima, login e venda no painel, e atualização em outra aba.
+
+ATENÇÃO:
+- Nunca publique service_role/secret key no HTML.
+- Não use o botão de cadastro público para criar administradores; autorize o UUID manualmente.
+- O nome dos compradores é público na rifa; informe os participantes.
+- Faça backup JSON antes de importar dados.
+- Em versões de produção, use domínio HTTPS e revise limites de tráfego/Realtime do plano.

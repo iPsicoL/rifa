@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rifa da Formatura | Odontologia</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--wine:#650e25;--gold:#b58b53;--cream:#fff8f0}
+body{font-family:ui-sans-serif,system-ui;background:#f6eee7;color:#4b1828}
+.serif{font-family:Georgia,serif}.number{aspect-ratio:1.25;min-width:0;border:1px solid #ddc5bd;border-radius:5px;font-size:clamp(9px,1.5vw,13px);font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;transition:transform .12s}
+.number:hover,.number:focus-visible{transform:scale(1.12);z-index:3;outline:2px solid var(--gold)}
+.number.sold{background:var(--wine);color:white;border-color:#7d243a}
+.number.free{background:#fffaf4;color:#5b2230}
+.number svg{width:58%;height:75%;fill:white}
+.number .num-mini{position:absolute;right:2px;bottom:0;font-size:8px;color:#ffe3d2;opacity:0}.number:hover .num-mini{opacity:1}
+.panel{background:white;border:1px solid #e9d8d1;border-radius:16px;box-shadow:0 8px 30px #5c15200d}
+.btn{border-radius:9px;padding:10px 15px;font-weight:700}
+.btn-main{background:var(--wine);color:white}.btn-alt{background:#f3e6de;color:#6a1930}
+.field{width:100%;border:1px solid #d8c3bb;border-radius:9px;padding:10px;background:white}
+@media(max-width:520px){.number{font-size:9px;border-radius:3px}.number .num-mini{display:none}}
+</style></head>
+<body>
+<header class="bg-[#5e0b22] text-white"><div class="max-w-6xl mx-auto px-4 py-4 flex flex-wrap gap-3 items-center justify-between"><div class="font-bold tracking-wider">🦷 RIFA DA FORMATURA</div><nav class="flex gap-2"><button id="publicBtn" class="btn bg-white text-[#650e25]">Ver rifa</button><button id="adminBtn" class="btn border border-white/50">Administrar</button></nav></div></header>
+<main class="max-w-6xl mx-auto px-3 sm:px-6 pb-16">
+<section class="text-center pt-9 pb-6"><div class="text-5xl mb-2">🦷 🎓</div><div class="text-[#650e25] font-black text-5xl sm:text-7xl tracking-tight">RIFA</div><div class="serif italic text-[#a17a4d] text-4xl sm:text-6xl -mt-1">da Formatura</div><div class="tracking-[.35em] font-bold text-[#650e25] mt-2 text-sm sm:text-base">ODONTOLOGIA</div><p class="max-w-xl mx-auto mt-5 text-sm sm:text-base text-[#744957]">Estamos realizando esta rifa em prol da nossa <b>formatura no curso de Odontologia.</b> Todo o valor arrecadado será destinado aos custos da cerimônia e demais despesas dessa grande conquista!</p></section>
+<section class="grid grid-cols-3 gap-2 sm:gap-4 mb-5"><div class="bg-[#650e25] text-white rounded-xl p-3 text-center"><div class="text-xs sm:text-base font-bold">🏆 PRÊMIO</div><div class="text-xl sm:text-4xl font-black text-[#f7d49b]">R$ 200</div><div class="text-xs">EM PIX</div></div><div class="bg-white rounded-xl p-3 text-center border border-[#e8d5c8]"><div class="text-xs sm:text-base font-bold">🎟️ VALOR</div><div class="text-xl sm:text-4xl font-black text-[#650e25]">R$ 5</div><div class="text-xs">POR NÚMERO</div></div><div class="bg-[#650e25] text-white rounded-xl p-3 text-center"><div class="text-xs sm:text-base font-bold">▶ SORTEIO</div><div class="text-lg sm:text-3xl font-black text-[#f7d49b]">LIVE</div><div class="text-[10px] sm:text-xs">Após vender todos</div></div></section>
+<section class="panel p-3 sm:p-5"><div class="flex flex-wrap gap-3 items-center justify-between mb-4"><div><h2 class="text-xl font-black">Escolha seu número</h2><p class="text-xs text-[#855f69]">Toque ou passe o mouse para ver o comprador.</p></div><div class="flex gap-3 text-xs"><span>🦷 Vendido</span><span>□ Disponível</span></div></div>
+<div class="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4"><div class="rounded-lg bg-[#faf0ea] p-3 text-center"><b id="soldCount" class="text-xl block">0</b><small>Vendidos</small></div><div class="rounded-lg bg-[#faf0ea] p-3 text-center"><b id="freeCount" class="text-xl block">0</b><small>Disponíveis</small></div><div class="rounded-lg bg-[#faf0ea] p-3 text-center"><b id="buyersCount" class="text-xl block">0</b><small>Compradores</small></div><div class="rounded-lg bg-[#faf0ea] p-3 text-center col-span-3 sm:col-span-1"><b id="revenue" class="text-xl block">R$ 0</b><small>Arrecadado</small></div></div>
+<div class="flex flex-wrap gap-2 mb-4"><input id="search" class="field flex-1 min-w-[170px]" placeholder="Buscar número ou comprador..."><select id="filter" class="field !w-auto"><option value="all">Todos</option><option value="free">Disponíveis</option><option value="sold">Vendidos</option></select></div>
+<div id="grid" class="grid grid-cols-10 sm:grid-cols-20 gap-[3px] sm:gap-1"></div>
+<div id="empty" class="hidden text-center p-5">Nenhum número encontrado.</div></section>
+<section id="login" class="hidden mt-7 panel p-4 sm:p-6"><h2 class="text-xl font-black mb-3">Acesso administrativo</h2><form id="loginForm" class="flex flex-col sm:flex-row gap-2"><input id="email" type="email" class="field flex-1" placeholder="E-mail" required><input id="password" type="password" class="field flex-1" placeholder="Senha" required><button class="btn btn-main" type="submit">Entrar</button></form><p id="loginMsg" class="text-sm mt-2"></p></section>
+<section id="admin" class="hidden mt-7 panel p-4 sm:p-6"><div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-2xl font-black">Painel administrativo</h2><p class="text-sm text-[#865e67]">As alterações são salvas no Supabase e sincronizadas online.</p></div><button id="lockBtn" class="btn btn-alt">Sair</button></div>
+<div class="grid md:grid-cols-2 gap-5 mt-5"><form id="saleForm" class="space-y-3"><h3 class="font-bold">Adicionar ou editar venda</h3><label class="block text-sm">Comprador<input id="buyerInput" class="field mt-1" required placeholder="Nome do comprador" list="buyerOptions"></label><datalist id="buyerOptions"></datalist><label class="block text-sm">Número(s)<textarea id="numbersInput" class="field mt-1" rows="3" required placeholder="Ex.: 23, 25, 29 ou 100-105"></textarea></label><p class="text-xs text-[#85626b]">Se um número já estiver vendido para outra pessoa, será solicitado confirmar a substituição.</p><button class="btn btn-main w-full" type="submit">Salvar venda(s)</button></form>
+<div class="space-y-3"><h3 class="font-bold">Gerenciar dados</h3><label class="block text-sm">Selecionar comprador<select id="buyerSelect" class="field mt-1"><option value="">Selecione...</option></select></label><div class="flex flex-wrap gap-2"><button id="renameBtn" class="btn btn-alt" type="button">Renomear</button><button id="deleteBuyerBtn" class="btn btn-alt" type="button">Excluir comprador e liberar números</button></div><div class="flex flex-wrap gap-2 pt-2"><button id="exportBtn" class="btn btn-main" type="button">Exportar backup JSON</button><button id="exportTxt" class="btn btn-alt" type="button">Exportar TXT</button><label class="btn btn-alt cursor-pointer">Importar JSON<input id="importFile" type="file" accept=".json,application/json" class="hidden"></label></div><p class="text-xs text-[#865e67]">Importar JSON substitui as atribuições existentes. Faça backup antes.</p></div></div>
+<div class="mt-5"><h3 class="font-bold mb-2">Números vendidos <span id="adminTotal"></span></h3><div id="salesList" class="max-h-80 overflow-y-auto divide-y text-sm"></div></div></section>
+<footer class="text-center mt-7 text-[#9a744c] serif italic text-xl">Mais que sorrisos, realização de um sonho! ♡</footer>
+</main>
+<dialog id="detail" class="rounded-2xl p-0 w-[min(92vw,380px)] shadow-2xl backdrop:bg-black/50"><div class="p-6"><div class="text-xs font-bold text-[#a17a4d]">RIFA DA FORMATURA</div><h3 id="detailNumber" class="text-3xl font-black mt-1"></h3><p id="detailStatus" class="mt-2"></p><div id="detailAdmin" class="hidden mt-5 flex flex-wrap gap-2"><button id="editOne" class="btn btn-main">Editar</button><button id="releaseOne" class="btn btn-alt">Liberar número</button></div><button id="closeDetail" class="btn btn-alt w-full mt-5">Fechar</button></div></dialog>
+<script>
+// PREENCHA SOMENTE A URL E A CHAVE PUBLICÁVEL DO SEU PROJETO.
+const SUPABASE_URL = 'COLE_AQUI_A_PROJECT_URL';
+const SUPABASE_PUBLISHABLE_KEY = 'COLE_AQUI_A_PUBLISHABLE_KEY';
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+const $ = id => document.getElementById(id);
+const tooth = '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M31.8 12C20 3 6 9 7 25c1 11 8 27 14 27 5 0 4-17 11-17s6 17 11 17c6 0 13-16 14-27C58 9 44 3 31.8 12Z"/></svg>';
+let sales = {}, buyerIds = {}, admin = false, selected = null, refreshPending = false;
+const names = () => [...new Set(Object.values(sales))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+function showError(e){console.error(e); alert(e?.message || String(e));}
+async function loadRifa(){
+  const {data,error} = await db.from('rifa_publica').select('numero,comprador_nome').order('numero');
+  if(error) throw error;
+  if(!data || data.length !== 500) throw Error('A consulta pública não retornou os 500 números. Verifique a view e as permissões.');
+  sales = {};
+  for(const row of data) if(row.comprador_nome) sales[row.numero] = row.comprador_nome;
+  render();
+}
+async function loadBuyers(){
+  buyerIds = {};
+  if(!admin) return;
+  const {data,error} = await db.from('compradores').select('id,nome');
+  if(error) throw error;
+  for(const row of data) buyerIds[row.nome] = row.id;
+}
+async function reload(){await loadRifa();if(admin)await loadBuyers();}
+function queueReload(){if(refreshPending)return;refreshPending=true;setTimeout(async()=>{refreshPending=false;try{await reload()}catch(e){console.error(e)}},200)}
+function render(){
+ const sold=Object.keys(sales).length;
+ $('soldCount').textContent=sold;$('freeCount').textContent=500-sold;$('buyersCount').textContent=names().length;
+ $('revenue').textContent=(sold*5).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+ const q=$('search').value.trim().toLocaleLowerCase('pt-BR'),filter=$('filter').value,grid=$('grid');
+ grid.innerHTML='';let visible=0;
+ for(let n=1;n<=500;n++){
+  const name=sales[n],isSold=!!name;
+  if((filter==='sold'&&!isSold)||(filter==='free'&&isSold))continue;
+  if(q&&!String(n).includes(q)&&!(name||'').toLocaleLowerCase('pt-BR').includes(q))continue;
+  visible++;const b=document.createElement('button');b.className='number '+(isSold?'sold':'free');b.type='button';
+  b.title=isSold?`${n} — ${name}`:`${n} — Disponível`;b.setAttribute('aria-label',b.title);
+  b.innerHTML=isSold?tooth+`<span class="num-mini">${n}</span>`:String(n);b.onclick=()=>showNumber(n);grid.appendChild(b);
+ }
+ $('empty').classList.toggle('hidden',visible!==0);
+ $('buyerOptions').innerHTML='';$('buyerSelect').innerHTML='<option value="">Selecione...</option>';
+ for(const name of names()){
+  const o=document.createElement('option');o.value=name;$('buyerOptions').appendChild(o);
+  const s=document.createElement('option');s.value=name;s.textContent=name;$('buyerSelect').appendChild(s);
+ }
+ $('adminTotal').textContent=`(${sold})`;$('salesList').innerHTML='';
+ Object.entries(sales).sort((a,b)=>+a[0]-+b[0]).forEach(([n,name])=>{
+  const row=document.createElement('div');row.className='flex justify-between items-center gap-2 py-2';
+  const label=document.createElement('span');label.textContent=`Nº ${n} — ${name}`;
+  const btn=document.createElement('button');btn.className='text-[#650e25] font-bold';btn.textContent='Editar';btn.onclick=()=>showNumber(+n);
+  row.append(label,btn);$('salesList').appendChild(row);
+ });
+}
+function showNumber(n){selected=n;$('detailNumber').textContent='Número '+String(n).padStart(2,'0');$('detailStatus').textContent=sales[n]?'🦷 Vendido para: '+sales[n]:'✓ Disponível';$('detailAdmin').classList.toggle('hidden',!admin);$('releaseOne').classList.toggle('hidden',!sales[n]);$('detail').showModal()}
+function parseNums(s){const result=new Set();for(const part of s.split(/[,;\s]+/)){if(!part)continue;const m=part.match(/^(\d+)-(\d+)$/);if(m){let a=+m[1],b=+m[2];if(b<a||b-a>500)throw Error('Intervalo inválido');for(let n=a;n<=b;n++)result.add(n)}else if(/^\d+$/.test(part))result.add(+part);else throw Error('Número inválido: '+part)}if(!result.size||[...result].some(n=>n<1||n>500))throw Error('Use números entre 1 e 500');return [...result]}
+async function assertAdmin(){const {data:{user},error}=await db.auth.getUser();if(error||!user)throw Error('Faça login como administrador.');const {data, error:e}=await db.rpc('eh_admin');if(e||!data)throw Error('Usuário sem permissão administrativa.');}
+async function getOrCreateBuyer(name){
+ let id=buyerIds[name];if(id)return id;
+ const {data,error}=await db.from('compradores').insert({nome:name}).select('id').single();
+ if(error)throw error;buyerIds[name]=data.id;return data.id;
+}
+async function assignNumbers(nums,name){
+ await assertAdmin();
+ const conflicts=nums.filter(n=>sales[n]&&sales[n]!==name);
+ if(conflicts.length&&!confirm('Os números '+conflicts.join(', ')+' já pertencem a outros compradores. Deseja transferi-los?'))return false;
+ const id=await getOrCreateBuyer(name);
+ const {error}=await db.from('numeros').update({comprador_id:id}).in('numero',nums);
+ if(error)throw error;await reload();return true;
+}
+$('closeDetail').onclick=()=>$('detail').close();$('search').oninput=render;$('filter').onchange=render;
+$('publicBtn').onclick=()=>{$('admin').classList.add('hidden');$('login').classList.add('hidden');window.scrollTo({top:0,behavior:'smooth'})};
+$('adminBtn').onclick=()=>{const id=admin?'admin':'login';$(id).classList.remove('hidden');$(id).scrollIntoView({behavior:'smooth'})};
+$('loginForm').onsubmit=async e=>{e.preventDefault();try{
+ const {error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;
+ await syncAdmin();if(!admin)throw Error('Login válido, mas usuário não está cadastrado como administrador.');$('password').value='';$('loginMsg').textContent='';
+ }catch(err){$('loginMsg').textContent=err.message;}};
+async function syncAdmin(){
+ const {data:{session}}=await db.auth.getSession();let allowed=false;
+ if(session){const {data,error}=await db.rpc('eh_admin');allowed=!error&&data===true;}
+ admin=allowed;$('admin').classList.toggle('hidden',!admin);$('login').classList.add('hidden');
+ if(admin){await loadBuyers();render();$('admin').scrollIntoView({behavior:'smooth'})}
+}
+$('lockBtn').onclick=async()=>{await db.auth.signOut();admin=false;$('admin').classList.add('hidden');$('login').classList.add('hidden')};
+$('saleForm').onsubmit=async e=>{e.preventDefault();try{const name=$('buyerInput').value.trim(),nums=parseNums($('numbersInput').value);if(!name)throw Error('Informe o comprador');if(await assignNumbers(nums,name)){$('numbersInput').value='';alert('Venda(s) salva(s) no Supabase!')}}catch(err){showError(err)}};
+$('editOne').onclick=()=>{if(selected===null)return;$('buyerInput').value=sales[selected]||'';$('numbersInput').value=selected;$('detail').close();$('admin').scrollIntoView({behavior:'smooth'})};
+$('releaseOne').onclick=async()=>{if(selected===null||!confirm('Liberar número '+selected+'?'))return;try{await assertAdmin();const {error}=await db.from('numeros').update({comprador_id:null}).eq('numero',selected);if(error)throw error;await reload();$('detail').close()}catch(e){showError(e)}};
+$('renameBtn').onclick=async()=>{const old=$('buyerSelect').value;if(!old)return alert('Selecione um comprador');const name=prompt('Novo nome:',old)?.trim();if(!name||name===old)return;try{await assertAdmin();const {error}=await db.from('compradores').update({nome:name}).eq('id',buyerIds[old]);if(error)throw error;await reload()}catch(e){showError(e)}};
+$('deleteBuyerBtn').onclick=async()=>{const name=$('buyerSelect').value;if(!name)return alert('Selecione um comprador');if(!confirm('Excluir '+name+' e liberar TODOS os números dele?'))return;try{await assertAdmin();const {error}=await db.from('compradores').delete().eq('id',buyerIds[name]);if(error)throw error;await reload()}catch(e){showError(e)}};
+function download(name,content,type){const a=document.createElement('a');const url=URL.createObjectURL(new Blob([content],{type}));a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+$('exportBtn').onclick=()=>download('rifa-backup.json',JSON.stringify(sales,null,2),'application/json');
+$('exportTxt').onclick=()=>download('rifa-lista.txt',Array.from({length:500},(_,i)=>{const n=i+1;return String(n).padStart(2,'0')+'\t'+(sales[n]||'')+'\t'+(sales[n]?'Vendido':'Disponível')}).join('\n'),'text/plain;charset=utf-8');
+$('importFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{
+ const obj=JSON.parse(await file.text());if(!obj||Array.isArray(obj)||typeof obj!=='object'||Object.entries(obj).some(([k,v])=>!/^\d+$/.test(k)||+k<1||+k>500||typeof v!=='string'||!v.trim()))throw Error('Arquivo inválido');
+ if(!confirm('Substituir TODAS as atribuições do banco pelo backup? Faça backup antes.'))return;
+ await assertAdmin();
+ // A função RPC aplica a substituição atomicamente, evitando importação parcial.
+ const {error}=await db.rpc('importar_rifa_json',{p_vendas:obj});if(error)throw error;
+ await reload();alert('Backup importado com sucesso.');
+ }catch(err){showError(err)}finally{e.target.value=''}};
+async function boot(){try{await loadRifa();await syncAdmin()}catch(e){console.error(e);$('empty').classList.remove('hidden');$('empty').textContent='Erro ao carregar a rifa: '+e.message}}
+const channel=db.channel('rifa-sync').on('postgres_changes',{event:'*',schema:'public',table:'numeros'},queueReload).on('postgres_changes',{event:'*',schema:'public',table:'compradores'},queueReload).subscribe();
+db.auth.onAuthStateChange(()=>{setTimeout(()=>syncAdmin().catch(console.error),0)});
+boot();
+</script></body></html>
