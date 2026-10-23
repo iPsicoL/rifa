@@ -19,6 +19,23 @@ body{font-family:ui-sans-serif,system-ui;background:#f6eee7;color:#4b1828}
 .btn-main{background:var(--wine);color:white}.btn-alt{background:#f3e6de;color:#6a1930}
 .field{width:100%;border:1px solid #d8c3bb;border-radius:9px;padding:10px;background:white}
 @media(max-width:520px){.number{font-size:9px;border-radius:3px}.number .num-mini{display:none}}
+
+/* Sorteio odontológico */
+.draw-backdrop{position:fixed;inset:0;z-index:90;background:rgba(20,3,12,.88);display:flex;align-items:center;justify-content:center;padding:14px;overflow-y:auto}
+.draw-backdrop[hidden]{display:none!important}
+.draw-stage{position:relative;isolation:isolate;overflow:hidden;width:min(100%,850px);max-height:calc(100dvh - 28px);overflow-y:auto;border:1px solid #d9b57b;border-radius:26px;background:radial-gradient(ellipse at 50% 10%,#922e50 0%,#560d28 54%,#2d091b 100%);color:white;text-align:center;box-shadow:0 24px 95px #0009;padding:clamp(18px,4vw,40px)}
+.draw-stage>*:not(canvas){position:relative;z-index:2}
+#drawFireworks{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.draw-top{letter-spacing:.28em;font-weight:900;color:#f4d19d;font-size:clamp(11px,2vw,15px)}
+.draw-title{font-family:Georgia,serif;font-size:clamp(30px,6vw,55px);font-weight:bold;margin:8px 0}
+.draw-icon{font-size:clamp(38px,7vw,66px);filter:drop-shadow(0 5px 10px #25000b)}
+.draw-count{font-size:clamp(70px,17vw,148px);font-weight:900;line-height:1.04;color:#ffe4ad;text-shadow:0 0 30px #ffbf6170;font-variant-numeric:tabular-nums}
+.draw-ticket{margin:12px auto;max-width:420px;padding:16px;border:2px dashed #e4bc80;border-radius:20px;background:#fff9ee;color:#64102b;box-shadow:0 10px 35px #21000b80}
+.draw-ticket-number{font-size:clamp(55px,13vw,110px);font-weight:950;line-height:1.05;font-variant-numeric:tabular-nums}
+.draw-winner{font-size:clamp(20px,4vw,34px);font-weight:900;overflow-wrap:anywhere}
+.draw-spark{display:inline-block;animation:drawFloat 2.1s ease-in-out infinite alternate}
+@keyframes drawFloat{from{transform:translateY(-5px) rotate(-8deg)}to{transform:translateY(6px) rotate(8deg)}}
+@media(prefers-reduced-motion:reduce){.draw-spark{animation:none}}
 </style></head>
 <body>
 <header class="bg-[#5e0b22] text-white"><div class="max-w-6xl mx-auto px-4 py-4 flex flex-wrap gap-3 items-center justify-between"><div class="font-bold tracking-wider">🦷 RIFA DA FORMATURA</div><nav class="flex gap-2"><button id="publicBtn" class="btn bg-white text-[#650e25]">Ver rifa</button><button id="adminBtn" class="btn border border-white/50">Administrar</button></nav></div></header>
@@ -35,9 +52,21 @@ body{font-family:ui-sans-serif,system-ui;background:#f6eee7;color:#4b1828}
 <section id="admin" class="hidden mt-7 panel p-4 sm:p-6"><div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-2xl font-black">Painel administrativo</h2><p class="text-sm text-[#865e67]">As alterações são salvas no Supabase e sincronizadas online.</p></div><button id="lockBtn" class="btn btn-alt">Sair</button></div>
 <div class="grid md:grid-cols-2 gap-5 mt-5"><form id="saleForm" class="space-y-3"><h3 class="font-bold">Adicionar ou editar venda</h3><label class="block text-sm">Comprador<input id="buyerInput" class="field mt-1" required placeholder="Nome do comprador" list="buyerOptions"></label><datalist id="buyerOptions"></datalist><label class="block text-sm">Número(s)<textarea id="numbersInput" class="field mt-1" rows="3" required placeholder="Ex.: 23, 25, 29 ou 100-105"></textarea></label><p class="text-xs text-[#85626b]">Se um número já estiver vendido para outra pessoa, será solicitado confirmar a substituição.</p><button class="btn btn-main w-full" type="submit">Salvar venda(s)</button></form>
 <div class="space-y-3"><h3 class="font-bold">Gerenciar dados</h3><label class="block text-sm">Selecionar comprador<select id="buyerSelect" class="field mt-1"><option value="">Selecione...</option></select></label><div class="flex flex-wrap gap-2"><button id="renameBtn" class="btn btn-alt" type="button">Renomear</button><button id="deleteBuyerBtn" class="btn btn-alt" type="button">Excluir comprador e liberar números</button></div><div class="flex flex-wrap gap-2 pt-2"><button id="exportBtn" class="btn btn-main" type="button">Exportar backup JSON</button><button id="exportTxt" class="btn btn-alt" type="button">Exportar TXT</button><button id="exportBuyersPdf" class="btn btn-main" type="button">📄 Exportar compradores PDF</button><button id="exportPng" class="btn btn-main" type="button">🖼️ Exportar rifa PNG</button><label class="btn btn-alt cursor-pointer">Importar JSON<input id="importFile" type="file" accept=".json,application/json" class="hidden"></label></div><p class="text-xs text-[#865e67]">Importar JSON substitui as atribuições existentes. Faça backup antes.</p></div></div>
+<div class="mt-6 rounded-2xl border border-[#d6b47b] bg-gradient-to-r from-[#fff6e9] to-[#f5e4dd] p-4 sm:p-5">
+  <div class="flex flex-wrap gap-3 items-center justify-between"><div><h3 class="text-xl font-black text-[#650e25]">🦷 Sorteio da Formatura</h3><p class="text-sm text-[#795461]">Animação de 30 segundos, números vendidos e revelação dos ganhadores.</p></div><button id="openDraw" class="btn btn-main" type="button">🎉 Realizar sorteio</button></div>
+  <p class="text-xs text-[#865e67] mt-2">O sorteio é feito no navegador do administrador; não altera vendas nem publica automaticamente o resultado.</p>
+</div>
 <div class="mt-5"><h3 class="font-bold mb-2">Números vendidos <span id="adminTotal"></span></h3><div id="salesList" class="max-h-80 overflow-y-auto divide-y text-sm"></div></div></section>
 <footer class="text-center mt-7 text-[#9a744c] serif italic text-xl">Mais que sorrisos, realização de um sonho! ♡</footer>
 </main>
+<div id="drawSetup" class="draw-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="drawSetupTitle"><div class="panel w-full max-w-xl p-5 sm:p-7" style="max-height:calc(100dvh - 28px);overflow-y:auto"><div class="flex items-start justify-between gap-3"><div><div class="text-sm font-bold text-[#b58b53]">🦷 ODONTOLOGIA • FORMATURA</div><h2 id="drawSetupTitle" class="text-2xl font-black mt-1">Preparar sorteio</h2></div><button id="closeDrawSetup" class="btn btn-alt" type="button" aria-label="Fechar">✕</button></div>
+<p id="drawSetupMsg" class="text-sm mt-3 text-[#795461]">Carregando participantes...</p>
+<div class="grid grid-cols-2 gap-3 my-4"><div class="bg-[#f9eee7] rounded-xl p-3 text-center"><b id="drawBuyers" class="text-2xl block">—</b><small>Compradores concorrendo</small></div><div class="bg-[#f9eee7] rounded-xl p-3 text-center"><b id="drawTickets" class="text-2xl block">—</b><small>Números vendidos elegíveis</small></div></div>
+<form id="drawConfig" class="space-y-3"><label class="block text-sm font-bold">Prêmio<input id="drawPrize" class="field mt-1" value="R$ 200,00 em PIX" required maxlength="110"></label><div class="grid grid-cols-2 gap-3"><label class="block text-sm font-bold">Números sorteados<input id="drawQuantity" class="field mt-1" type="number" min="1" max="500" value="1" required></label><label class="block text-sm font-bold">Contagem regressiva<input id="drawSeconds" class="field mt-1" type="number" min="5" max="120" value="30" required></label></div>
+<label class="flex items-start gap-2 text-sm"><input id="drawDistinct" type="checkbox" class="mt-1 accent-[#650e25]"><span>Não repetir comprador entre os ganhadores (opcional)</span></label>
+<p class="text-xs text-[#795461]">Cada número vendido equivale a uma chance. Os ganhadores são sorteados sem repetição de número, usando aleatoriedade criptográfica do navegador. As vendas são consultadas novamente ao iniciar.</p>
+<button id="startDraw" type="submit" class="btn btn-main w-full text-lg">✨ Iniciar sorteio</button></form></div></div>
+<div id="drawShow" class="draw-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="drawShowTitle"><div class="draw-stage"><canvas id="drawFireworks" aria-hidden="true"></canvas><div class="draw-top">🦷 RIFA DA FORMATURA • ODONTOLOGIA</div><h2 id="drawShowTitle" class="draw-title">O grande sorteio</h2><div class="draw-icon"><span class="draw-spark">🦷</span> ✨ <span class="draw-spark">🎓</span></div><p id="drawPrizeDisplay" class="text-[#f5d5a1] font-bold text-lg mt-2"></p><p id="drawRound" class="text-sm mt-3 text-white/80"></p><div id="drawCountdown" class="draw-count" aria-live="off">30</div><p id="drawStatus" class="text-[#f4d19d] font-bold">Preparando a sorte...</p><div class="draw-ticket"><div class="text-xs font-bold tracking-widest">NÚMERO DA SORTE</div><div id="drawRolling" class="draw-ticket-number">000</div><div id="drawWinner" class="draw-winner hidden"></div></div><div id="drawResults" class="text-left text-sm mt-4 max-w-lg mx-auto space-y-2"></div><div class="flex flex-wrap gap-2 justify-center mt-5"><button id="drawNext" class="btn bg-[#f4d19d] text-[#650e25] hidden" type="button">Sortear próximo número →</button><button id="drawFinish" class="btn bg-white text-[#650e25] hidden" type="button">Encerrar apresentação</button></div><p class="text-xs text-white/70 mt-4">Resultado exibido somente nesta apresentação; não é gravado automaticamente no banco.</p></div></div>
 <dialog id="detail" class="rounded-2xl p-0 w-[min(92vw,380px)] shadow-2xl backdrop:bg-black/50"><div class="p-6"><div class="text-xs font-bold text-[#a17a4d]">RIFA DA FORMATURA</div><h3 id="detailNumber" class="text-3xl font-black mt-1"></h3><p id="detailStatus" class="mt-2"></p><div id="detailAdmin" class="hidden mt-5 flex flex-wrap gap-2"><button id="editOne" class="btn btn-main">Editar</button><button id="releaseOne" class="btn btn-alt">Liberar número</button></div><button id="closeDetail" class="btn btn-alt w-full mt-5">Fechar</button></div></dialog>
 <script>
 // PREENCHA SOMENTE A URL E A CHAVE PUBLICÁVEL DO SEU PROJETO.
@@ -262,6 +291,137 @@ async function exportBuyersPDF(){
   finally{btn.disabled=false;btn.textContent=original;}
 }
 $('exportBuyersPdf').onclick=exportBuyersPDF;
+
+// Sorteio administrativo: consulta participantes atuais e usa crypto.getRandomValues.
+const drawState={tickets:[],remaining:[],winners:[],prize:'',quantity:1,seconds:30,distinct:false,round:0,timer:null,rollingTimer:null,raf:null,particles:[],running:false};
+const drawSleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+function drawRandomIndex(length){
+  if(!length)throw Error('Não há números elegíveis.');
+  const range=0x100000000,limit=range-(range%length),array=new Uint32Array(1);
+  let value;do{crypto.getRandomValues(array);value=array[0]}while(value>=limit);
+  return value%length;
+}
+async function drawFetchTickets(){
+  await assertAdmin();
+  const {data,error}=await db.from('rifa_publica').select('numero,comprador_nome').order('numero');
+  if(error)throw error;
+  if(!data||data.length!==500)throw Error('O Supabase não retornou todos os 500 números.');
+  return data.filter(r=>r.comprador_nome&&r.comprador_nome.trim()).map(r=>({numero:Number(r.numero),nome:r.comprador_nome.trim()}));
+}
+function drawUniqueBuyers(rows){return new Set(rows.map(r=>r.nome.toLocaleLowerCase('pt-BR'))).size}
+function drawSetVisible(id,visible){$(id).hidden=!visible}
+async function drawOpenSetup(){
+  if(!admin)return alert('Faça login como administrador.');
+  drawSetVisible('drawSetup',true);$('drawSetupMsg').textContent='Consultando números vendidos no Supabase...';
+  $('startDraw').disabled=true;
+  try{
+    drawState.tickets=await drawFetchTickets();
+    $('drawBuyers').textContent=drawUniqueBuyers(drawState.tickets);
+    $('drawTickets').textContent=drawState.tickets.length;
+    $('drawQuantity').max=drawState.tickets.length;
+    $('drawSetupMsg').textContent=drawState.tickets.length?'Todos os números vendidos participam, independentemente dos filtros da página.':'Não existem números vendidos para sortear.';
+    $('startDraw').disabled=!drawState.tickets.length;
+  }catch(e){$('drawSetupMsg').textContent='Erro ao consultar participantes: '+e.message;showError(e)}
+}
+$('openDraw').onclick=drawOpenSetup;
+$('closeDrawSetup').onclick=()=>drawSetVisible('drawSetup',false);
+function drawStopTimers(){
+  if(drawState.timer)clearInterval(drawState.timer);
+  if(drawState.rollingTimer)clearInterval(drawState.rollingTimer);
+  if(drawState.raf)cancelAnimationFrame(drawState.raf);
+  drawState.timer=drawState.rollingTimer=drawState.raf=null;
+}
+function drawFireworks(){
+  const canvas=$('drawFireworks'),stage=canvas.parentElement;
+  const width=stage.clientWidth,height=stage.clientHeight;
+  const ratio=Math.min(window.devicePixelRatio||1,2);
+  canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);
+  const ctx=canvas.getContext('2d');ctx.setTransform(ratio,0,0,ratio,0,0);
+  drawState.particles=[];
+  const colors=['#f4d19d','#fff8f0','#ff9caf','#e0a75c','#fef2b9'];
+  for(let burst=0;burst<7;burst++){
+    const x=width*(.12+Math.random()*.76),y=height*(.1+Math.random()*.56);
+    for(let i=0;i<45;i++){
+      const a=Math.random()*Math.PI*2,v=1+Math.random()*4;
+      drawState.particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:65+Math.random()*45,color:colors[i%colors.length]});
+    }
+  }
+  function frame(){
+    ctx.clearRect(0,0,width,height);
+    drawState.particles=drawState.particles.filter(p=>p.life>0);
+    for(const p of drawState.particles){p.x+=p.vx;p.y+=p.vy;p.vy+=.045;p.life--;ctx.globalAlpha=Math.min(1,p.life/30);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,2.5,0,Math.PI*2);ctx.fill()}
+    ctx.globalAlpha=1;
+    if(drawState.particles.length&&$('drawShow').hidden===false)drawState.raf=requestAnimationFrame(frame);
+  }
+  if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)frame();
+}
+function drawStartRound(){
+  drawStopTimers();
+  drawState.round++;
+  $('drawRound').textContent=`Sorteio ${drawState.round} de ${drawState.quantity} • ${drawState.remaining.length} números concorrendo`;
+  $('drawWinner').classList.add('hidden');$('drawWinner').textContent='';
+  $('drawRolling').textContent='000';$('drawCountdown').classList.remove('hidden');
+  $('drawNext').classList.add('hidden');$('drawFinish').classList.add('hidden');
+  $('drawStatus').textContent='✨ Os números estão girando... 🦷';
+  let seconds=drawState.seconds;
+  $('drawCountdown').textContent=seconds;
+  drawState.rollingTimer=setInterval(()=>{
+    if(!drawState.remaining.length)return;
+    const row=drawState.remaining[drawRandomIndex(drawState.remaining.length)];
+    $('drawRolling').textContent=String(row.numero).padStart(3,'0');
+  },85);
+  drawState.timer=setInterval(()=>{
+    seconds--;
+    $('drawCountdown').textContent=seconds;
+    if(seconds<=0){drawStopTimers();drawRevealWinner()}
+  },1000);
+}
+function drawRevealWinner(){
+  // A seleção acontece somente após o contador terminar.
+  const index=drawRandomIndex(drawState.remaining.length);
+  const winner=drawState.remaining[index];
+  drawState.remaining.splice(index,1);
+  if(drawState.distinct){
+    const key=winner.nome.toLocaleLowerCase('pt-BR');
+    drawState.remaining=drawState.remaining.filter(r=>r.nome.toLocaleLowerCase('pt-BR')!==key);
+  }
+  drawState.winners.push(winner);
+  $('drawRolling').textContent=String(winner.numero).padStart(3,'0');
+  $('drawWinner').textContent='🏆 '+winner.nome;
+  $('drawWinner').classList.remove('hidden');
+  $('drawCountdown').classList.add('hidden');
+  $('drawStatus').textContent='🎉 TEMOS UM GANHADOR! 🎉';
+  const item=document.createElement('div');item.className='bg-white/15 rounded-xl p-3 border border-[#d9b57b]/40';
+  item.textContent=`🏆 ${drawState.winners.length}º prêmio: nº ${String(winner.numero).padStart(3,'0')} — ${winner.nome} • ${drawState.prize}`;
+  $('drawResults').appendChild(item);
+  drawFireworks();
+  const finished=drawState.winners.length>=drawState.quantity||!drawState.remaining.length;
+  $('drawNext').classList.toggle('hidden',finished);
+  $('drawFinish').classList.toggle('hidden',!finished);
+  if(finished)drawState.running=false;
+}
+$('drawNext').onclick=()=>{if(drawState.running)drawStartRound()};
+$('drawFinish').onclick=()=>{drawStopTimers();drawState.running=false;drawSetVisible('drawShow',false)};
+$('drawConfig').onsubmit=async e=>{
+  e.preventDefault();
+  const button=$('startDraw');button.disabled=true;
+  try{
+    const prize=$('drawPrize').value.trim(),quantity=Number($('drawQuantity').value),seconds=Number($('drawSeconds').value),distinct=$('drawDistinct').checked;
+    if(!prize)throw Error('Informe o prêmio.');
+    if(!Number.isInteger(quantity)||quantity<1||quantity>500)throw Error('Quantidade inválida.');
+    if(!Number.isInteger(seconds)||seconds<5||seconds>120)throw Error('A contagem deve ser de 5 a 120 segundos.');
+    const tickets=await drawFetchTickets();
+    const capacity=distinct?drawUniqueBuyers(tickets):tickets.length;
+    if(quantity>capacity)throw Error(`Há somente ${capacity} ${distinct?'compradores diferentes':'números vendidos'} elegíveis para esse sorteio.`);
+    drawState.tickets=tickets;drawState.remaining=tickets.slice();drawState.winners=[];
+    drawState.prize=prize;drawState.quantity=quantity;drawState.seconds=seconds;drawState.distinct=distinct;drawState.round=0;drawState.running=true;
+    $('drawPrizeDisplay').textContent='🏆 PRÊMIO: '+prize;
+    $('drawResults').replaceChildren();
+    drawSetVisible('drawSetup',false);drawSetVisible('drawShow',true);
+    drawStartRound();
+  }catch(err){showError(err)}finally{button.disabled=false}
+};
+
 
 $('exportTxt').onclick=()=>download('rifa-lista.txt',Array.from({length:500},(_,i)=>{const n=i+1;return String(n).padStart(2,'0')+'\t'+(sales[n]||'')+'\t'+(sales[n]?'Vendido':'Disponível')}).join('\n'),'text/plain;charset=utf-8');
 $('importFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{
