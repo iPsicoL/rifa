@@ -24,14 +24,14 @@ body{font-family:ui-sans-serif,system-ui;background:#f6eee7;color:#4b1828}
 <section class="text-center pt-9 pb-6"><div class="text-5xl mb-2">🦷 🎓</div><div class="text-[#650e25] font-black text-5xl sm:text-7xl tracking-tight">RIFA</div><div class="serif italic text-[#a17a4d] text-4xl sm:text-6xl -mt-1">da Formatura</div><div class="tracking-[.35em] font-bold text-[#650e25] mt-2 text-sm sm:text-base">ODONTOLOGIA</div><p class="max-w-xl mx-auto mt-5 text-sm sm:text-base text-[#744957]">Estamos realizando esta rifa em prol da nossa <b>formatura no curso de Odontologia.</b> Todo o valor arrecadado será destinado aos custos da cerimônia e demais despesas dessa grande conquista!</p></section>
 <section class="grid grid-cols-3 gap-2 sm:gap-4 mb-5"><div class="bg-[#650e25] text-white rounded-xl p-3 text-center"><div class="text-xs sm:text-base font-bold">🏆 PRÊMIO</div><div class="text-xl sm:text-4xl font-black text-[#f7d49b]">R$ 200</div><div class="text-xs">EM PIX</div></div><div class="bg-white rounded-xl p-3 text-center border border-[#e8d5c8]"><div class="text-xs sm:text-base font-bold">🎟️ VALOR</div><div class="text-xl sm:text-4xl font-black text-[#650e25]">R$ 5</div><div class="text-xs">POR NÚMERO</div></div><div class="bg-[#650e25] text-white rounded-xl p-3 text-center"><div class="text-xs sm:text-base font-bold">▶ SORTEIO</div><div class="text-lg sm:text-3xl font-black text-[#f7d49b]">LIVE</div><div class="text-[10px] sm:text-xs">Após vender todos</div></div></section>
 <section class="panel p-3 sm:p-5"><div class="flex flex-wrap gap-3 items-center justify-between mb-4"><div><h2 class="text-xl font-black">Escolha seu número</h2><p class="text-xs text-[#855f69]">Toque ou passe o mouse para ver o comprador.</p></div><div class="flex gap-3 text-xs"><span>🦷 Vendido</span><span>□ Disponível</span></div></div>
-<div class="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4"><div class="rounded-lg bg-[#faf0ea] p-3 text-center"><b id="soldCount" class="text-xl block">0</b><small>Vendidos</small></div><div class="rounded-lg bg-[#faf0ea] p-3 text-center"><b id="freeCount" class="text-xl block">0</b><small>Disponíveis</small></div><div class="rounded-lg bg-[#faf0ea] p-3 text-center"><b id="buyersCount" class="text-xl block">0</b><small>Compradores</small></div><div class="rounded-lg bg-[#faf0ea] p-3 text-center col-span-3 sm:col-span-1"><b id="revenue" class="text-xl block">R$ 0</b><small>Arrecadado</small></div></div>
+<div class="grid grid-cols-3 gap-2 mb-4"><div class="rounded-lg bg-[#faf0ea] p-3 text-center"><b id="soldCount" class="text-xl block">0</b><small>Vendidos</small></div><div class="rounded-lg bg-[#faf0ea] p-3 text-center"><b id="freeCount" class="text-xl block">0</b><small>Disponíveis</small></div><div class="rounded-lg bg-[#faf0ea] p-3 text-center"><b id="buyersCount" class="text-xl block">0</b><small>Compradores</small></div></div>
 <div class="flex flex-wrap gap-2 mb-4"><input id="search" class="field flex-1 min-w-[170px]" placeholder="Buscar número ou comprador..."><select id="filter" class="field !w-auto"><option value="all">Todos</option><option value="free">Disponíveis</option><option value="sold">Vendidos</option></select></div>
 <div id="grid" class="grid grid-cols-10 sm:grid-cols-20 gap-[3px] sm:gap-1"></div>
 <div id="empty" class="hidden text-center p-5">Nenhum número encontrado.</div></section>
 <section id="login" class="hidden mt-7 panel p-4 sm:p-6"><h2 class="text-xl font-black mb-3">Acesso administrativo</h2><form id="loginForm" class="flex flex-col sm:flex-row gap-2"><input id="email" type="email" class="field flex-1" placeholder="E-mail" required><input id="password" type="password" class="field flex-1" placeholder="Senha" required><button class="btn btn-main" type="submit">Entrar</button></form><p id="loginMsg" class="text-sm mt-2"></p></section>
 <section id="admin" class="hidden mt-7 panel p-4 sm:p-6"><div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-2xl font-black">Painel administrativo</h2><p class="text-sm text-[#865e67]">As alterações são salvas no Supabase e sincronizadas online.</p></div><button id="lockBtn" class="btn btn-alt">Sair</button></div>
 <div class="grid md:grid-cols-2 gap-5 mt-5"><form id="saleForm" class="space-y-3"><h3 class="font-bold">Adicionar ou editar venda</h3><label class="block text-sm">Comprador<input id="buyerInput" class="field mt-1" required placeholder="Nome do comprador" list="buyerOptions"></label><datalist id="buyerOptions"></datalist><label class="block text-sm">Número(s)<textarea id="numbersInput" class="field mt-1" rows="3" required placeholder="Ex.: 23, 25, 29 ou 100-105"></textarea></label><p class="text-xs text-[#85626b]">Se um número já estiver vendido para outra pessoa, será solicitado confirmar a substituição.</p><button class="btn btn-main w-full" type="submit">Salvar venda(s)</button></form>
-<div class="space-y-3"><h3 class="font-bold">Gerenciar dados</h3><label class="block text-sm">Selecionar comprador<select id="buyerSelect" class="field mt-1"><option value="">Selecione...</option></select></label><div class="flex flex-wrap gap-2"><button id="renameBtn" class="btn btn-alt" type="button">Renomear</button><button id="deleteBuyerBtn" class="btn btn-alt" type="button">Excluir comprador e liberar números</button></div><div class="flex flex-wrap gap-2 pt-2"><button id="exportBtn" class="btn btn-main" type="button">Exportar backup JSON</button><button id="exportTxt" class="btn btn-alt" type="button">Exportar TXT</button><label class="btn btn-alt cursor-pointer">Importar JSON<input id="importFile" type="file" accept=".json,application/json" class="hidden"></label></div><p class="text-xs text-[#865e67]">Importar JSON substitui as atribuições existentes. Faça backup antes.</p></div></div>
+<div class="space-y-3"><h3 class="font-bold">Gerenciar dados</h3><label class="block text-sm">Selecionar comprador<select id="buyerSelect" class="field mt-1"><option value="">Selecione...</option></select></label><div class="flex flex-wrap gap-2"><button id="renameBtn" class="btn btn-alt" type="button">Renomear</button><button id="deleteBuyerBtn" class="btn btn-alt" type="button">Excluir comprador e liberar números</button></div><div class="flex flex-wrap gap-2 pt-2"><button id="exportBtn" class="btn btn-main" type="button">Exportar backup JSON</button><button id="exportTxt" class="btn btn-alt" type="button">Exportar TXT</button><button id="exportPng" class="btn btn-main" type="button">🖼️ Exportar rifa PNG</button><label class="btn btn-alt cursor-pointer">Importar JSON<input id="importFile" type="file" accept=".json,application/json" class="hidden"></label></div><p class="text-xs text-[#865e67]">Importar JSON substitui as atribuições existentes. Faça backup antes.</p></div></div>
 <div class="mt-5"><h3 class="font-bold mb-2">Números vendidos <span id="adminTotal"></span></h3><div id="salesList" class="max-h-80 overflow-y-auto divide-y text-sm"></div></div></section>
 <footer class="text-center mt-7 text-[#9a744c] serif italic text-xl">Mais que sorrisos, realização de um sonho! ♡</footer>
 </main>
@@ -128,6 +128,61 @@ $('renameBtn').onclick=async()=>{const old=$('buyerSelect').value;if(!old)return
 $('deleteBuyerBtn').onclick=async()=>{const name=$('buyerSelect').value;if(!name)return alert('Selecione um comprador');if(!confirm('Excluir '+name+' e liberar TODOS os números dele?'))return;try{await assertAdmin();const {error}=await db.from('compradores').delete().eq('id',buyerIds[name]);if(error)throw error;await reload()}catch(e){showError(e)}};
 function download(name,content,type){const a=document.createElement('a');const url=URL.createObjectURL(new Blob([content],{type}));a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 $('exportBtn').onclick=()=>download('rifa-backup.json',JSON.stringify(sales,null,2),'application/json');
+// Exportação visual: a imagem original é usada como fundo; a grade é redesenhada
+// com o estado atual de todos os 500 números, sem depender de captura de tela.
+async function exportRifaPNG(){
+  const button=$('exportPng');
+  const original=button.textContent;
+  button.disabled=true;button.textContent='Gerando imagem...';
+  try {
+    // Busca dados atuais do Supabase, ignorando filtros e busca da interface.
+    const {data,error}=await db.from('rifa_publica').select('numero,comprador_nome').order('numero');
+    if(error)throw error;
+    if(!data||data.length!==500)throw Error('Não foi possível obter os 500 números atualizados.');
+    const vendidos=new Set(data.filter(r=>r.comprador_nome).map(r=>Number(r.numero)));
+    const bg=new Image();bg.decoding='async';
+    bg.src=new URL('rifa.jpeg',document.baseURI).href;
+    await new Promise((resolve,reject)=>{bg.onload=resolve;bg.onerror=()=>reject(Error('Imagem rifa.jpeg não encontrada. Publique rifa.jpeg na mesma pasta do index.html.'));if(bg.complete&&bg.naturalWidth)resolve()});
+    const scale=2, w=1024,h=1536;
+    const canvas=document.createElement('canvas');canvas.width=w*scale;canvas.height=h*scale;
+    const ctx=canvas.getContext('2d');ctx.scale(scale,scale);
+    ctx.drawImage(bg,0,0,w,h);
+    // Coordenadas da grade de 20 colunas x 25 linhas na arte de referência.
+    const x=20,y=598,gw=985,gh=809,cols=20,rows=25,cw=gw/cols,ch=gh/rows;
+    ctx.fillStyle='#fff5ee';ctx.fillRect(x-1,y-1,gw+2,gh+2);
+    for(let n=1;n<=500;n++){
+      const c=(n-1)%cols,r=Math.floor((n-1)/cols),xx=x+c*cw,yy=y+r*ch;
+      const sold=vendidos.has(n);
+      ctx.fillStyle=sold?'#650e25':'#fffaf5';
+      ctx.fillRect(xx+0.7,yy+0.7,cw-1.4,ch-1.4);
+      ctx.strokeStyle='#764353';ctx.lineWidth=0.9;
+      ctx.strokeRect(xx+0.7,yy+0.7,cw-1.4,ch-1.4);
+      if(sold){
+        // Dente branco vetorial no centro da célula.
+        ctx.save();ctx.translate(xx+cw/2,yy+ch/2);ctx.scale(.27,.27);
+        ctx.beginPath();ctx.moveTo(-1,-20);
+        ctx.bezierCurveTo(-19,-32,-32,-18,-28,0);
+        ctx.bezierCurveTo(-25,14,-15,29,-9,29);
+        ctx.bezierCurveTo(-2,29,-6,7,0,7);
+        ctx.bezierCurveTo(6,7,2,29,9,29);
+        ctx.bezierCurveTo(15,29,25,14,28,0);
+        ctx.bezierCurveTo(32,-18,19,-32,-1,-20);
+        ctx.closePath();ctx.fillStyle='#fff';ctx.fill();ctx.restore();
+      }else{
+        ctx.fillStyle='#4b1828';ctx.font='bold 16px Arial,sans-serif';
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(String(n),xx+cw/2,yy+ch/2+1);
+      }
+    }
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+    if(!blob)throw Error('O navegador não conseguiu gerar o PNG.');
+    const url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download='rifa-odontologia-atualizada.png';document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }catch(e){showError(e)}finally{button.disabled=false;button.textContent=original}
+}
+$('exportPng').onclick=exportRifaPNG;
+
 $('exportTxt').onclick=()=>download('rifa-lista.txt',Array.from({length:500},(_,i)=>{const n=i+1;return String(n).padStart(2,'0')+'\t'+(sales[n]||'')+'\t'+(sales[n]?'Vendido':'Disponível')}).join('\n'),'text/plain;charset=utf-8');
 $('importFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{
  const obj=JSON.parse(await file.text());if(!obj||Array.isArray(obj)||typeof obj!=='object'||Object.entries(obj).some(([k,v])=>!/^\d+$/.test(k)||+k<1||+k>500||typeof v!=='string'||!v.trim()))throw Error('Arquivo inválido');
