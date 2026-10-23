@@ -26,6 +26,7 @@ body{font-family:ui-sans-serif,system-ui;background:#f6eee7;color:#4b1828}
 <section class="grid grid-cols-3 gap-2 sm:gap-4 mb-5"><div class="bg-[#650e25] text-white rounded-xl p-3 text-center"><div class="text-xs sm:text-base font-bold">🏆 PRÊMIO</div><div class="text-xl sm:text-4xl font-black text-[#f7d49b]">R$ 200</div><div class="text-xs">EM PIX</div></div><div class="bg-white rounded-xl p-3 text-center border border-[#e8d5c8]"><div class="text-xs sm:text-base font-bold">🎟️ VALOR</div><div class="text-xl sm:text-4xl font-black text-[#650e25]">R$ 5</div><div class="text-xs">POR NÚMERO</div></div><div class="bg-[#650e25] text-white rounded-xl p-3 text-center"><div class="text-xs sm:text-base font-bold">▶ SORTEIO</div><div class="text-lg sm:text-3xl font-black text-[#f7d49b]">LIVE</div><div class="text-[10px] sm:text-xs">Após vender todos</div></div></section>
 <section class="panel p-3 sm:p-5"><div class="flex flex-wrap gap-3 items-center justify-between mb-4"><div><h2 class="text-xl font-black">Escolha seu número</h2><p class="text-xs text-[#855f69]">Toque ou passe o mouse para ver o comprador.</p></div><div class="flex gap-3 text-xs"><span>🦷 Vendido</span><span>□ Disponível</span></div></div>
 <div class="grid grid-cols-3 gap-2 mb-4"><div class="rounded-lg bg-[#faf0ea] p-3 text-center"><b id="soldCount" class="text-xl block">0</b><small>Vendidos</small></div><div class="rounded-lg bg-[#faf0ea] p-3 text-center"><b id="freeCount" class="text-xl block">0</b><small>Disponíveis</small></div><div class="rounded-lg bg-[#faf0ea] p-3 text-center"><b id="buyersCount" class="text-xl block">0</b><small>Compradores</small></div></div>
+<div class="flex flex-wrap items-center justify-between gap-3 mb-4"><p class="text-xs text-[#855f69]">Baixe a arte da rifa com os números vendidos atualizados.</p><button id="exportPngPublic" type="button" class="btn btn-main w-full sm:w-auto">🖼️ Baixar rifa em PNG</button></div>
 <div class="flex flex-wrap gap-2 mb-4"><input id="search" class="field flex-1 min-w-[170px]" placeholder="Buscar número ou comprador..."><select id="filter" class="field !w-auto"><option value="all">Todos</option><option value="free">Disponíveis</option><option value="sold">Vendidos</option></select></div>
 <div id="grid" class="grid grid-cols-10 sm:grid-cols-20 gap-[3px] sm:gap-1"></div>
 <div id="empty" class="hidden text-center p-5">Nenhum número encontrado.</div></section>
@@ -131,7 +132,7 @@ $('exportBtn').onclick=()=>download('rifa-backup.json',JSON.stringify(sales,null
 // Exportação visual: a imagem original é usada como fundo; a grade é redesenhada
 // com o estado atual de todos os 500 números, sem depender de captura de tela.
 async function exportRifaPNG(){
-  const button=$('exportPng');
+  const button=this instanceof HTMLElement ? this : $('exportPng');
   const original=button.textContent;
   button.disabled=true;button.textContent='Gerando imagem...';
   try {
@@ -182,6 +183,7 @@ async function exportRifaPNG(){
   }catch(e){showError(e)}finally{button.disabled=false;button.textContent=original}
 }
 $('exportPng').onclick=exportRifaPNG;
+$('exportPngPublic').onclick=exportRifaPNG;
 
 $('exportTxt').onclick=()=>download('rifa-lista.txt',Array.from({length:500},(_,i)=>{const n=i+1;return String(n).padStart(2,'0')+'\t'+(sales[n]||'')+'\t'+(sales[n]?'Vendido':'Disponível')}).join('\n'),'text/plain;charset=utf-8');
 $('importFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{
