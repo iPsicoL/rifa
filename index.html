@@ -66,7 +66,6 @@ function queueReload(){if(refreshPending)return;refreshPending=true;setTimeout(a
 function render(){
  const sold=Object.keys(sales).length;
  $('soldCount').textContent=sold;$('freeCount').textContent=500-sold;$('buyersCount').textContent=names().length;
- $('revenue').textContent=(sold*5).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
  const q=$('search').value.trim().toLocaleLowerCase('pt-BR'),filter=$('filter').value,grid=$('grid');
  grid.innerHTML='';let visible=0;
  for(let n=1;n<=500;n++){
