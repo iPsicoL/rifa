@@ -4,6 +4,7 @@
 <!-- Versão 2026-10-23: PNG incorporado, sem arquivo JPEG externo; removida referência revenue -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <style>
 :root{--wine:#650e25;--gold:#b58b53;--cream:#fff8f0}
 body{font-family:ui-sans-serif,system-ui;background:#f6eee7;color:#4b1828}
@@ -33,7 +34,7 @@ body{font-family:ui-sans-serif,system-ui;background:#f6eee7;color:#4b1828}
 <section id="login" class="hidden mt-7 panel p-4 sm:p-6"><h2 class="text-xl font-black mb-3">Acesso administrativo</h2><form id="loginForm" class="flex flex-col sm:flex-row gap-2"><input id="email" type="email" class="field flex-1" placeholder="E-mail" required><input id="password" type="password" class="field flex-1" placeholder="Senha" required><button class="btn btn-main" type="submit">Entrar</button></form><p id="loginMsg" class="text-sm mt-2"></p></section>
 <section id="admin" class="hidden mt-7 panel p-4 sm:p-6"><div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-2xl font-black">Painel administrativo</h2><p class="text-sm text-[#865e67]">As alterações são salvas no Supabase e sincronizadas online.</p></div><button id="lockBtn" class="btn btn-alt">Sair</button></div>
 <div class="grid md:grid-cols-2 gap-5 mt-5"><form id="saleForm" class="space-y-3"><h3 class="font-bold">Adicionar ou editar venda</h3><label class="block text-sm">Comprador<input id="buyerInput" class="field mt-1" required placeholder="Nome do comprador" list="buyerOptions"></label><datalist id="buyerOptions"></datalist><label class="block text-sm">Número(s)<textarea id="numbersInput" class="field mt-1" rows="3" required placeholder="Ex.: 23, 25, 29 ou 100-105"></textarea></label><p class="text-xs text-[#85626b]">Se um número já estiver vendido para outra pessoa, será solicitado confirmar a substituição.</p><button class="btn btn-main w-full" type="submit">Salvar venda(s)</button></form>
-<div class="space-y-3"><h3 class="font-bold">Gerenciar dados</h3><label class="block text-sm">Selecionar comprador<select id="buyerSelect" class="field mt-1"><option value="">Selecione...</option></select></label><div class="flex flex-wrap gap-2"><button id="renameBtn" class="btn btn-alt" type="button">Renomear</button><button id="deleteBuyerBtn" class="btn btn-alt" type="button">Excluir comprador e liberar números</button></div><div class="flex flex-wrap gap-2 pt-2"><button id="exportBtn" class="btn btn-main" type="button">Exportar backup JSON</button><button id="exportTxt" class="btn btn-alt" type="button">Exportar TXT</button><button id="exportPng" class="btn btn-main" type="button">🖼️ Exportar rifa PNG</button><label class="btn btn-alt cursor-pointer">Importar JSON<input id="importFile" type="file" accept=".json,application/json" class="hidden"></label></div><p class="text-xs text-[#865e67]">Importar JSON substitui as atribuições existentes. Faça backup antes.</p></div></div>
+<div class="space-y-3"><h3 class="font-bold">Gerenciar dados</h3><label class="block text-sm">Selecionar comprador<select id="buyerSelect" class="field mt-1"><option value="">Selecione...</option></select></label><div class="flex flex-wrap gap-2"><button id="renameBtn" class="btn btn-alt" type="button">Renomear</button><button id="deleteBuyerBtn" class="btn btn-alt" type="button">Excluir comprador e liberar números</button></div><div class="flex flex-wrap gap-2 pt-2"><button id="exportBtn" class="btn btn-main" type="button">Exportar backup JSON</button><button id="exportTxt" class="btn btn-alt" type="button">Exportar TXT</button><button id="exportBuyersPdf" class="btn btn-main" type="button">📄 Exportar compradores PDF</button><button id="exportPng" class="btn btn-main" type="button">🖼️ Exportar rifa PNG</button><label class="btn btn-alt cursor-pointer">Importar JSON<input id="importFile" type="file" accept=".json,application/json" class="hidden"></label></div><p class="text-xs text-[#865e67]">Importar JSON substitui as atribuições existentes. Faça backup antes.</p></div></div>
 <div class="mt-5"><h3 class="font-bold mb-2">Números vendidos <span id="adminTotal"></span></h3><div id="salesList" class="max-h-80 overflow-y-auto divide-y text-sm"></div></div></section>
 <footer class="text-center mt-7 text-[#9a744c] serif italic text-xl">Mais que sorrisos, realização de um sonho! ♡</footer>
 </main>
@@ -184,6 +185,83 @@ async function exportRifaPNG(){
 }
 $('exportPng').onclick=exportRifaPNG;
 $('exportPngPublic').onclick=exportRifaPNG;
+
+// Exportação administrativa: busca dados atuais do Supabase, sem depender de filtros da tela.
+async function exportBuyersPDF(){
+  const btn=$('exportBuyersPdf');
+  const original=btn.textContent;
+  btn.disabled=true;btn.textContent='Gerando PDF...';
+  try{
+    await assertAdmin();
+    if(!window.jspdf?.jsPDF) throw Error('Biblioteca de PDF não carregada. Verifique sua conexão.');
+    const {data,error}=await db.from('rifa_publica').select('numero,comprador_nome').order('numero');
+    if(error) throw error;
+    if(!data || data.length!==500) throw Error('A consulta não retornou os 500 números.');
+    const groups=new Map();
+    for(const row of data){
+      const name=(row.comprador_nome||'').trim();
+      if(!name)continue;
+      const key=name.toLocaleLowerCase('pt-BR');
+      if(!groups.has(key))groups.set(key,{name,numbers:[]});
+      groups.get(key).numbers.push(Number(row.numero));
+    }
+    const buyers=[...groups.values()].sort((a,b)=>a.name.localeCompare(b.name,'pt-BR',{sensitivity:'base'}));
+    const sold=buyers.reduce((sum,b)=>sum+b.numbers.length,0);
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+    const W=210,H=297,margin=17,right=W-margin;
+    const wine=[101,14,37],gold=[181,139,83],cream=[255,248,240];
+    const generated=new Date().toLocaleString('pt-BR');
+    let y=0,page=0;
+    function header(){
+      page++;
+      pdf.setFillColor(...cream);pdf.rect(0,0,W,H,'F');
+      pdf.setFillColor(...wine);pdf.rect(0,0,W,32,'F');
+      pdf.setDrawColor(...gold);pdf.setLineWidth(.8);pdf.line(margin,32,right,32);
+      pdf.setTextColor(255,255,255);pdf.setFont('helvetica','bold');pdf.setFontSize(19);
+      pdf.text('RIFA DA FORMATURA',margin,15);
+      pdf.setFontSize(10);pdf.setCharSpace(1.7);pdf.text('ODONTOLOGIA',margin,23);pdf.setCharSpace(0);
+      pdf.setTextColor(...wine);pdf.setFont('helvetica','bold');pdf.setFontSize(14);
+      pdf.text('Relação de compradores e números',margin,44);
+      pdf.setFont('helvetica','normal');pdf.setFontSize(9);pdf.setTextColor(105,75,80);
+      pdf.text(`${buyers.length} compradores  |  ${sold} números vendidos  |  ${500-sold} disponíveis`,margin,51);
+      pdf.setDrawColor(221,197,188);pdf.line(margin,56,right,56);
+      y=64;
+    }
+    function footer(){
+      pdf.setDrawColor(...gold);pdf.setLineWidth(.35);pdf.line(margin,280,right,280);
+      pdf.setTextColor(125,83,92);pdf.setFont('helvetica','italic');pdf.setFontSize(8);
+      pdf.text('Mais que sorrisos, realização de um sonho!',margin,286);
+      pdf.setFont('helvetica','normal');pdf.text(`Página ${page}`,right,286,{align:'right'});
+    }
+    function nextPage(){footer();pdf.addPage();header();}
+    header();
+    for(const buyer of buyers){
+      buyer.numbers.sort((a,b)=>a-b);
+      const numberText=buyer.numbers.map(n=>String(n).padStart(2,'0')).join(', ');
+      pdf.setFont('helvetica','normal');pdf.setFontSize(10);
+      const lines=pdf.splitTextToSize(numberText,W-2*margin-11);
+      const height=12+lines.length*5.1;
+      if(y+height>275)nextPage();
+      // Mantém nome e seus números no mesmo bloco, inclusive na mudança de página.
+      pdf.setFillColor(249,238,231);pdf.roundedRect(margin,y,right-margin,height-2,2,2,'F');
+      pdf.setFillColor(...wine);pdf.rect(margin,y,2,height-2,'F');
+      pdf.setFont('helvetica','bold');pdf.setTextColor(...wine);pdf.setFontSize(11);
+      pdf.text(buyer.name,margin+6,y+6.3);
+      pdf.setFontSize(8);pdf.setTextColor(132,91,75);
+      pdf.text(`${buyer.numbers.length} número${buyer.numbers.length===1?'':'s'}`,right-4,y+6.1,{align:'right'});
+      pdf.setFont('helvetica','normal');pdf.setTextColor(70,35,45);pdf.setFontSize(10);
+      pdf.text(lines,margin+6,y+12);
+      y+=height+3;
+    }
+    if(!buyers.length){pdf.setTextColor(...wine);pdf.text('Nenhum número vendido até o momento.',margin,y+5);}
+    footer();
+    pdf.setProperties({title:'Rifa da Formatura - Relação de compradores',subject:'Compradores em ordem alfabética e seus números'});
+    pdf.save('rifa-odontologia-compradores.pdf');
+  }catch(err){showError(err)}
+  finally{btn.disabled=false;btn.textContent=original;}
+}
+$('exportBuyersPdf').onclick=exportBuyersPDF;
 
 $('exportTxt').onclick=()=>download('rifa-lista.txt',Array.from({length:500},(_,i)=>{const n=i+1;return String(n).padStart(2,'0')+'\t'+(sales[n]||'')+'\t'+(sales[n]?'Vendido':'Disponível')}).join('\n'),'text/plain;charset=utf-8');
 $('importFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{
